@@ -1,8 +1,13 @@
-%% Digit Span test
-function [Parameters,Data] = digitSpanTest
-% Lennart Wittkuhn
-% Max Planck Institute (MPI) for Human Development Berlin
+%% Digit Span Test
+% written by Lennart Wittkuhn |?Max Planck Research Group NeuroCode |?2018
+% Max Planck Institute (MPI) for Human Development, Berlin, Germany
 
+% This is a computerized version of the Digit-Span Test.
+
+% This task only runs on Mac OSX, since it makes use of the MATLAB
+% system('say','') command, which is only supported by Mac OSX
+
+function [Parameters,Data] = digitSpanTest
 %%  SET ALL TASK INDEPENDENT PARAMETERS:
 
 % CLEAN UP:
@@ -17,16 +22,19 @@ end
 
 % SET ALL NECESSARY TASK PATHS AND GET SYSTEM INFORMATION
 Parameters.pathTask = fullfile(Parameters.baseLocation,'Seafile','digitSpanTest'); % path to the task folder
+Parameters.pathScripts = fullfile(Parameters.pathTask,'scripts'); % path to the task folder
+Parameters.pathStimuli = fullfile(Parameters.pathTask,'stimuli'); % path to the task folder
 Parameters.pathData = fullfile(Parameters.pathTask,'data'); % path to the data directory
 Parameters.computer = computer; % save information about computer
+Parameters.hostName = char(getHostName(java.net.InetAddress.getLocalHost));
 Parameters.osName = OSName; % save information about operating system
-cd(Parameters.pathTask) % set the current directory to the script folder
+Parameters.matlabVersion = ['R' version('-release')]; % save information about operating systemversion('-release')
+cd(Parameters.pathScripts) % set the current directory to the script folder
 
 % INITALIZE RANDOM NUMBER GENERATOR:
 rng(sum(100*clock)); % initalize random number generator
 
 % SCREEN SETTINGS:
-% Parameters.screenId = 0; % choose the lowest screen
 Parameters.screenId = max(Screen('Screens')); % choose the highest screen
 [Parameters.screenSize(1), Parameters.screenSize(2)] = Screen('WindowSize',Parameters.screenId); % get the screen size
 Parameters.screenResolution = [Parameters.screenSize(1) Parameters.screenSize(2)]; % get screen resolution
@@ -34,16 +42,17 @@ Parameters.centerX = Parameters.screenSize(1)/2; % get center of x-axis
 Parameters.centerY = Parameters.screenSize(2)/2; % get center of y-axis
 
 % GET LOUDSPEAKER IMAGE
-Parameters.Parameters.theImageLocation = fullfile(Parameters.pathTask,'speaker.png'); % create image path
+Parameters.Parameters.theImageLocation = fullfile(Parameters.pathStimuli,'speaker.png'); % create image path
 Parameters.theImage = imread(Parameters.Parameters.theImageLocation); % read the image
 
-% SET TEXT AND KEY PARAMETERS:
+% SET TEXT PARAMETERS:
 Parameters.textSize = 50; % text size
 Parameters.textFont = 'Helvetica'; % font type
 Parameters.textWrap = 60; % text wrap factor
 Parameters.colorBlack = [0 0 0]; % color black
 Parameters.colorWhite = [256 256 256]; % color white
 
+% SET KEY PARAMETERS:
 KbName('UnifyKeyNames'); % used for cross-platform compatibility of keynaming
 Parameters.keyTargets = [KbName('1!'),KbName('2@'),KbName('3#'),KbName('4$'),...
     KbName('5%'),KbName('6^'),KbName('7&'),KbName('8*'),KbName('9('),KbName('Return'),KbName('DELETE')]; % list all relevant keys here
@@ -53,7 +62,11 @@ Parameters.keyList(Parameters.keyTargets) = 1; % set keys of interest to 1
 % GET THE DEVICE NUMBER:
 [Parameters.deviceKeyNames,Parameters.deviceNames] = GetKeyboardIndices; % get a list of all devices connected
 if ismac
-    Parameters.deviceString = 'Apple Internal Keyboard / Trackpad'; % name of the scanner trigger box
+    if strcmp(Parameters.hostName,'lip-osx-003854')
+        Parameters.deviceString = 'Apple Internal Keyboard / Trackpad'; % name of the scanner trigger box
+    elseif strcmp(Parameters.hostName,'nrcd-osx-404169')
+        Parameters.deviceString = 'Apple Internal Keyboard / Trackpad'; % name of the scanner trigger box
+    end
     Parameters.device = 0;
     for k = 1:length(Parameters.deviceNames) % for each possible device
         if strcmp(Parameters.deviceNames{k},Parameters.deviceString) % compare the name to the name you want
@@ -154,7 +167,7 @@ while true
     end
 end
 
-%%
+%% START PSYCHTOOLBOX
 
 % PSYCHTOOLBOX SETTINGS:
 Screen('Preference','SkipSyncTests',1); % for maximum accuracy and reliability
@@ -170,26 +183,26 @@ Screen('Preference', 'TextAlphaBlending', 0);
 clear ans % clear unnecessasary variables
 
 % OPEN TASK WINDOW
-window = Screen('OpenWindow', Parameters.screenId); % open screen
-Priority(MaxPriority(window)); % raise Matlab to realtime-priority mode to get the highest suitable priority
-Screen('TextFont', window, Parameters.textFont); % select specific text font
-Screen('TextSize', window, Parameters.textSize); % select specific text size
-ListenChar(2); % makes it so characters typed do not show up in the command window
+Parameters.window = Screen('OpenWindow', Parameters.screenId); % open screen
+Priority(MaxPriority(Parameters.window)); % raise Matlab to realtime-priority mode to get the highest suitable priority
+Screen('TextFont', Parameters.window, Parameters.textFont); % select specific text font
+Screen('TextSize', Parameters.window, Parameters.textSize); % select specific text size
+ListenChar(2); % makes it so characters typed do not show up in the command Parameters.window
 HideCursor(); % hides the cursor
 RestrictKeysForKbCheck(Parameters.keyTargets);
-Parameters.flipInterval = Screen('GetFlipInterval', window); % get the monitor flip interval
+Parameters.flipInterval = Screen('GetFlipInterval', Parameters.window); % get the monitor flip interval
 
 % START SCREEN: WELCOME PARTICIPANTS TO THE EXPERIMENT
-DrawFormattedText(window,'Willkommen zur Aufgabe','center',Parameters.centerY-Parameters.textSize * 2,Parameters.colorBlack);
-DrawFormattedText(window,'"Zahlenreihen merken"','center','center',Parameters.colorBlack);
-DrawFormattedText(window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
-Screen('Flip',window); % flip to the screen
-while true
+DrawFormattedText(Parameters.window,'Willkommen zur Aufgabe','center',Parameters.centerY-Parameters.textSize * 2,Parameters.colorBlack);
+DrawFormattedText(Parameters.window,'"Zahlenreihen merken"','center','center',Parameters.colorBlack);
+DrawFormattedText(Parameters.window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
+Screen('Flip',Parameters.window); % flip to the screen
+while true % wait for enter keypress
     [keyIsDown,~, keyCode] = KbCheck(Parameters.device);
     keyCode(keyCode == 0) = NaN;
     [~,keyIndex] = min(keyCode);
     if logical(keyIsDown) && ismember(keyIndex,KbName('Return'))
-        Screen('Flip',window); % flip to the screen
+        Screen('Flip',Parameters.window); % flip to the screen
         WaitSecs(1);
         break
     end
@@ -197,29 +210,32 @@ end
 
 %% INSTRUCTIONS FORWARD
 
-DrawFormattedText(window,'Instruktion: Zahlenreihen vorwaerts','center',Parameters.textSize * 2,Parameters.colorBlack);
-DrawFormattedText(window,strjoin({'Der Computer wird Ihnen einige Zahlen nennen.',...
+DrawFormattedText(Parameters.window,'Instruktionen: Zahlenreihen vorwaerts','center',Parameters.textSize * 2,Parameters.colorBlack);
+DrawFormattedText(Parameters.window,strjoin({'Der Computer wird Ihnen einige Zahlen vorlesen.',...
     'Wenn er fertig ist, geben Sie bitte die Zahlen in die Tastatur ein.',...
+    'Nutzen Sie daf?r bitte ausschlie?lich die Zahlenreihe auf der Tastatur und nicht den Zahlenblock.',...
+    'Sie koennen Ihre Eingabe mithilfe der Loeschen-Taste korrigieren.',...
+    'Bitte bestaetigen Sie Ihre Eingabe mit der Enter-Taste.',...
     'Druecken Sie bitte die Enter-Taste fuer ein Beispiel.'}),'center','center',Parameters.colorBlack,Parameters.textWrap);
-DrawFormattedText(window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
-Screen('Flip',window); % flip to the screen
+DrawFormattedText(Parameters.window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
+Screen('Flip',Parameters.window); % flip to the screen
 
-while true
+while true % wait for enter keypress
     [keyIsDown,~, keyCode] = KbCheck(Parameters.device);
     keyCode(keyCode == 0) = NaN;
     [~,keyIndex] = min(keyCode);
     if logical(keyIsDown) && ismember(keyIndex,KbName('Return'))
-        Screen('Flip',window); % flip to the screen
+        Screen('Flip',Parameters.window); % flip to the screen
         WaitSecs(1);
         break
     end
 end
 
 % READ DIGITS:
-imageTexture = Screen('MakeTexture', window, Parameters.theImage); % make the image into a texture
-Screen('DrawTexture', window, imageTexture,[],[]); % draw the image to the screen with corresponding stimulus orientation
-Screen('DrawingFinished', window); % tell PTB that stimulus drawing for this frame is finished
-Screen('Flip',window); % flip to the screen
+Parameters.imageTexture = Screen('MakeTexture', Parameters.window, Parameters.theImage); % make the image into a texture
+Screen('DrawTexture', Parameters.window, Parameters.imageTexture,[],[]); % draw the image to the screen with corresponding stimulus orientation
+Screen('DrawingFinished', Parameters.window); % tell PTB that stimulus drawing for this frame is finished
+Screen('Flip',Parameters.window); % flip to the screen
 
 currentSequence = [8 2 3]; % define current sequence
 for digit = 1:length(currentSequence) % loop through the sequence
@@ -232,45 +248,45 @@ end
 message = 'Eingabe:';
 useKbCheck = true;
 positionX = 550;
-entry = GetEchoString(window,message,positionX,Parameters.centerY,Parameters.colorBlack,Parameters.colorWhite,useKbCheck,Parameters.device);
+entry = GetEchoString(Parameters.window,message,positionX,Parameters.centerY,Parameters.colorBlack,Parameters.colorWhite,useKbCheck,Parameters.device);
 clear keyIsDown; clear keyIndex; clear keyCode;
-Screen('Flip',window); % flip after response entry
+Screen('Flip',Parameters.window); % flip after response entry
 
 response = str2double(entry);
 if isequal(response,str2double(sprintf('%d',currentSequence)))
-    DrawFormattedText(window,'Das ist richtig.','center','center',Parameters.colorBlack);
+    DrawFormattedText(Parameters.window,'Das ist richtig.','center','center',Parameters.colorBlack);
 else
-    DrawFormattedText(window,'Das ist falsch.','center','center',Parameters.colorBlack);
+    DrawFormattedText(Parameters.window,'Das ist falsch.','center','center',Parameters.colorBlack);
 end
-DrawFormattedText(window, 'Gleich geht es weiter.','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
-Screen('Flip',window); % flip after response entry
+DrawFormattedText(Parameters.window, 'Gleich geht es weiter.','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
+Screen('Flip',Parameters.window); % flip after response entry
 WaitSecs(3); % wait for 3 seconds
 
 %% INSTRUCTIONS BACKWARD
 
-DrawFormattedText(window,'Instruktion: Zahlenreihen rueckwaerts','center',Parameters.textSize * 2,Parameters.colorBlack);
-DrawFormattedText(window,strjoin({'Der Computer wird Ihnen wieder einige Zahlen nennen.',...
-    'Wenn er fertig ist, geben Sie bitte die Zahlen in der umgekehrten Reihenfolge (von hinten nach vorne) in die Tastatur ein.',...
+DrawFormattedText(Parameters.window,'Instruktionen: Zahlenreihen rueckwaerts','center',Parameters.textSize * 2,Parameters.colorBlack);
+DrawFormattedText(Parameters.window,strjoin({'Der Computer wird Ihnen wieder einige Zahlen nennen.',...
+    'Dieses mal geben Sie jedoch bitte die Zahlen in der umgekehrten Reihenfolge (von hinten nach vorne) in die Tastatur ein.',...
     'Druecken Sie bitte die Enter-Taste fuer ein Beispiel.'}),'center','center',Parameters.colorBlack,Parameters.textWrap);
-DrawFormattedText(window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
-Screen('Flip',window); % flip to the screen
+DrawFormattedText(Parameters.window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
+Screen('Flip',Parameters.window); % flip to the screen
 
 while true
     [keyIsDown,~, keyCode] = KbCheck(Parameters.device);
     keyCode(keyCode == 0) = NaN;
     [~,keyIndex] = min(keyCode);
     if logical(keyIsDown) && ismember(keyIndex,KbName('Return'))
-        Screen('Flip',window); % flip to the screen
+        Screen('Flip',Parameters.window); % flip to the screen
         WaitSecs(1);
         break
     end
 end
 
 % READ DIGITS:
-imageTexture = Screen('MakeTexture', window, Parameters.theImage); % make the image into a texture
-Screen('DrawTexture', window, imageTexture,[],[]); % draw the image to the screen with corresponding stimulus orientation
-Screen('DrawingFinished', window); % tell PTB that stimulus drawing for this frame is finished
-Screen('Flip',window); % flip to the screen
+Parameters.imageTexture = Screen('MakeTexture', Parameters.window, Parameters.theImage); % make the image into a texture
+Screen('DrawTexture', Parameters.window, Parameters.imageTexture,[],[]); % draw the image to the screen with corresponding stimulus orientation
+Screen('DrawingFinished', Parameters.window); % tell PTB that stimulus drawing for this frame is finished
+Screen('Flip',Parameters.window); % flip to the screen
 
 currentSequence = [7 1 9]; % define current sequence
 for digit = 1:length(currentSequence) % loop through the sequence
@@ -283,33 +299,34 @@ end
 message = 'Eingabe:';
 useKbCheck = true;
 positionX = 550;
-entry = GetEchoString(window,message,positionX,Parameters.centerY,Parameters.colorBlack,Parameters.colorWhite,useKbCheck,Parameters.device);
+entry = GetEchoString(Parameters.window,message,positionX,Parameters.centerY,Parameters.colorBlack,Parameters.colorWhite,useKbCheck,Parameters.device);
 clear keyIsDown; clear keyIndex; clear keyCode;
-Screen('Flip',window); % flip after response entry
+Screen('Flip',Parameters.window); % flip after response entry
 
 response = str2double(entry);
 if isequal(response,str2double(sprintf('%d',fliplr(currentSequence))))
-    DrawFormattedText(window,'Das ist richtig.','center','center',Parameters.colorBlack);
+    DrawFormattedText(Parameters.window,'Das ist richtig.','center','center',Parameters.colorBlack);
 else
-    DrawFormattedText(window,'Das ist falsch.','center','center',Parameters.colorBlack);
+    DrawFormattedText(Parameters.window,'Das ist falsch.','center','center',Parameters.colorBlack);
 end
-DrawFormattedText(window, 'Gleich geht es weiter.','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
-Screen('Flip',window); % flip after response entry
+DrawFormattedText(Parameters.window, 'Gleich geht es weiter.','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
+Screen('Flip',Parameters.window); % flip after response entry
 WaitSecs(3); % wait for 3 seconds
-
 
 
 %% START BEFORE MAIN TASK
 
-DrawFormattedText(window,'Jetzt beginnt das Experiment.','center','center',Parameters.colorBlack);
-DrawFormattedText(window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
-Screen('Flip',window); % flip to the screen
+DrawFormattedText(Parameters.window,strjoin({'Jetzt beginnt das Experiment.'...
+    'Sie bearbeiten zuerst die Aufgabenbedingung "Zahlenreihen vorwaerts".',...
+    'Danach bearbeiten Sie die Aufgabenbedingung "Zahlenreihen ruckwaerts".'}),'center','center',Parameters.colorBlack,Parameters.textWrap);
+DrawFormattedText(Parameters.window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
+Screen('Flip',Parameters.window); % flip to the screen
 while true
     [keyIsDown,~, keyCode] = KbCheck(Parameters.device);
     keyCode(keyCode == 0) = NaN;
     [~,keyIndex] = min(keyCode);
     if logical(keyIsDown) && ismember(keyIndex,KbName('Return'))
-        Screen('Flip',window); % flip to the screen
+        Screen('Flip',Parameters.window); % flip to the screen
         WaitSecs(1);
         break
     end
@@ -325,17 +342,19 @@ for cond = 1:2 % loop through both conditions
 
     if cond == 1
         digits = Parameters.digitsForward;
-        message = 'Bitte Zahlenreihen vorwaerts wiedergeben';
+        message = 'Bitte Zahlenreihen vorwaerts wiedergeben.';
     elseif cond == 2
         digits = Parameters.digitsBackward;
-        message = 'Bitte Zahlenreihen rueckwaerts wiedergeben';
+        message = 'Bitte Zahlenreihen rueckwaerts wiedergeben.';
     end
-    DrawFormattedText(window,'Hauptexperiment','center',Parameters.textSize * 2,Parameters.colorBlack);
-    DrawFormattedText(window,message,'center','center',Parameters.colorBlack); % draw fixation cross to screen
-    DrawFormattedText(window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
-    Screen('DrawingFinished', window); % tell PTB that stimulus drawing for this frame is finished
-    Screen('Flip',window); % flip to the screen
-    while true
+    
+    % SHOW START SCREEN:
+    DrawFormattedText(Parameters.window,'Hauptexperiment','center',Parameters.textSize * 2,Parameters.colorBlack);
+    DrawFormattedText(Parameters.window,message,'center','center',Parameters.colorBlack); % draw fixation cross to screen
+    DrawFormattedText(Parameters.window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
+    Screen('DrawingFinished', Parameters.window); % tell PTB that stimulus drawing for this frame is finished
+    Screen('Flip',Parameters.window); % flip to the screen
+    while true % wait for Enter keypress
         [keyIsDown,~, keyCode] = KbCheck(Parameters.device);
         keyCode(keyCode == 0) = NaN;
         [~,keyIndex] = min(keyCode);
@@ -344,15 +363,17 @@ for cond = 1:2 % loop through both conditions
         end
     end
     
+    % START MAIN TASK LOOP
     trial = 1;
     while true
         
-        % READ DIGITS:
-        imageTexture = Screen('MakeTexture', window, Parameters.theImage); % make the image into a texture
-        Screen('DrawTexture', window, imageTexture,[],[]); % draw the image to the screen with corresponding stimulus orientation
-        Screen('DrawingFinished', window); % tell PTB that stimulus drawing for this frame is finished
-        Screen('Flip',window); % flip to the screen
+        % SHOW LOUDSPEAKER IMAGE:
+        Parameters.imageTexture = Screen('MakeTexture',Parameters.window,Parameters.theImage); % make the image into a texture
+        Screen('DrawTexture',Parameters.window,Parameters.imageTexture,[],[]); % draw the image to the screen with corresponding stimulus orientation
+        Screen('DrawingFinished',Parameters.window); % tell PTB that stimulus drawing for this frame is finished
+        Screen('Flip',Parameters.window); % flip to the screen
         
+        % READ THE DIGITS:
         currentSequence = digits{trial}; % define current sequence
         for digit = 1:length(currentSequence) % loop through the sequence
             currentDigit = num2str(currentSequence(digit)); % get current digit as string
@@ -364,9 +385,9 @@ for cond = 1:2 % loop through both conditions
         message = 'Eingabe:';
         useKbCheck = true;
         positionX = 550;
-        entry = GetEchoString(window,message,positionX,Parameters.centerY,Parameters.colorBlack,Parameters.colorWhite,useKbCheck,Parameters.device);
+        entry = GetEchoString(Parameters.window,message,positionX,Parameters.centerY,Parameters.colorBlack,Parameters.colorWhite,useKbCheck,Parameters.device);
         clear keyIsDown; clear keyIndex; clear keyCode;
-        Screen('Flip',window); % flip after response entry
+        Screen('Flip',Parameters.window); % flip after response entry
         
         % CHECK RESPONSE ENTRY:
         if isempty(entry)
@@ -381,7 +402,7 @@ for cond = 1:2 % loop through both conditions
         end
         
         % DECIDE WHETHER TO STOP OR TO CONTINUE:
-        if mod(trial,2) == 0 && sum(acc(trial-1:trial,cond)) == 0 || nansum(acc(:,cond)) == Parameters.nTrials
+        if mod(trial,2) == 0 && sum(acc(trial-1:trial,cond)) == 0 || trial == Parameters.nTrials
             break
         else
             trial = trial + 1;
@@ -390,12 +411,14 @@ for cond = 1:2 % loop through both conditions
     end
 end
 
-% END OF THE EXPERIMENT
-DrawFormattedText(window,'Ende der Aufgabe.','center',Parameters.textSize * 2,Parameters.colorBlack);
-DrawFormattedText(window,double('Vielen Dank fuer Ihre Teilnahme.'),'center',Parameters.textSize * 4,Parameters.colorBlack);
-DrawFormattedText(window, 'Bitte wenden Sie sich an die Versuchsleitung.','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
-Screen('DrawingFinished', window); % tell PTB that stimulus drawing for this frame is finished
-Screen('Flip',window); % flip to the screen
+%% END OF THE EXPERIMENT
+
+% SHOW SCREEN: END OF THE EXPERIMENT
+DrawFormattedText(Parameters.window,'Ende der Aufgabe.','center',Parameters.textSize * 2,Parameters.colorBlack);
+DrawFormattedText(Parameters.window,double('Vielen Dank fuer Ihre Teilnahme.'),'center',Parameters.textSize * 4,Parameters.colorBlack);
+DrawFormattedText(Parameters.window, 'Bitte wenden Sie sich an die Versuchsleitung.','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
+Screen('DrawingFinished', Parameters.window); % tell PTB that stimulus drawing for this frame is finished
+Screen('Flip',Parameters.window); % flip to the screen
 KbPressWait; % wait for button press to continue
 
 % CREATE AND SAVE DATA FILE
@@ -406,9 +429,10 @@ Data.responseBackward = response(:,2); % add response for forward condition
 Data.accForward =  acc(:,1); % add accuracy of forward condition
 Data.accBackward =  acc(:,2); % add accuracy of backward condition
 save(fullfile(Parameters.pathData,['DigitSpan_',Parameters.subjectInfo.id,'.mat']),'Data'); % save subject data
+fprintf('Data saved successfully!\n')
 
 % FINISH PSYCHTOOLBOX
-ListenChar(0); % makes it so characters typed do show up in the command window
+ListenChar(0); % makes it so characters typed do show up in the command Parameters.window
 ShowCursor(); % show the cursor
 Screen('CloseAll'); % close screen
 RestrictKeysForKbCheck; % reset the keyboard input checking for all keys
