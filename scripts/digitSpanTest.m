@@ -1,5 +1,5 @@
 %% Digit Span Test
-% written by Lennart Wittkuhn |?Max Planck Research Group NeuroCode |?2018
+% written by Lennart Wittkuhn | Max Planck Research Group NeuroCode | 2018
 % Max Planck Institute (MPI) for Human Development, Berlin, Germany
 
 % This is a computerized version of the Digit-Span Test.
@@ -12,6 +12,15 @@ function [Parameters,Data] = digitSpanTest
 
 % CLEAN UP:
 close all; clear variables; clc;
+
+% ASK WHETHER SYSTEM LANGUAGE HAS BEEN CHANGED TO GERMAN?
+choice = questdlg('Was the system language set to German?',...
+    'Warning!', ...
+    'No','Yes','Yes');
+if strcmp(choice,'No')
+    return
+elseif strcmp(choice,'Yes')
+end
 
 % IDENTIFY COMPUTER
 Parameters.computer = computer; % save information about computer
@@ -89,8 +98,6 @@ elseif ispc
     Parameters.device =  Parameters.deviceKeyNames;
 end
 
-
-
 %% INPUT SUBJECT INFO
 while true
     
@@ -147,6 +154,7 @@ Parameters.digitInterval = 0.5;
 
 % CREATE AND SAVE DATA FILE
 Data = table; % % initalize
+Data.id = repmat(Parameters.subjectInfo.id,Parameters.nTrials * Parameters.numCond,1);
 Data.cond = transpose(repelem(1:2,Parameters.nTrials)); % initalize
 Data.trial = repmat(transpose(1:Parameters.nTrials),Parameters.numCond,1); % initalize
 Data.digits = {...
@@ -277,24 +285,23 @@ for cond = 1:Parameters.numCond
     
 end
 
-
 %% START BEFORE MAIN TASK
 
-DrawFormattedText(Parameters.window,strjoin({'Jetzt beginnt das Experiment.\n'...
-    'Sie bearbeiten zuerst die Aufgabenbedingung "Zahlenreihen vorwaerts".\n',...
-    'Danach bearbeiten Sie die Aufgabenbedingung "Zahlenreihen ruckwaerts".'}),'center','center',Parameters.colorBlack,Parameters.textWrap);
+DrawFormattedText(Parameters.window,strjoin({'Jetzt beginnt das Hauptexperiment.'...
+    'Sie bearbeiten zuerst die Aufgabenbedingung "Zahlenreihen vorwaerts".',...
+    'Danach bearbeiten Sie die Aufgabenbedingung "Zahlenreihen ruckwaerts".',...
+    'Bitte beachten Sie, dass die Zahlenreihen im Verlauf des Experiments laenger werden.',...
+    'Au?erdem erhalten Sie keine Rueckmeldung mehr, ob Ihre Antwort richtig oder falsch war.'}),'center','center',Parameters.colorBlack,Parameters.textWrap);
 DrawFormattedText(Parameters.window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
 Screen('Flip',Parameters.window); % flip to the screen
-
-% WAIT FOR ENTER KEYPRESS:
-waitEnter(Parameters);
+waitEnter(Parameters); % wait for enter key press
 
 
 %% MAIN TASK
 
 message = {'Bitte Zahlenreihen vorwaerts wiedergeben.';'Bitte Zahlenreihen rueckwaerts wiedergeben.'};
 
-for cond = 1:2 % loop through both conditions
+for cond = 1:Parameters.numCond % loop through both conditions
    
     % SHOW START SCREEN:
     DrawFormattedText(Parameters.window,'Hauptexperiment','center',Parameters.textSize * 2,Parameters.colorBlack);
@@ -335,7 +342,7 @@ Screen('Flip',Parameters.window); % flip to the screen
 KbPressWait; % wait for button press to continue
 
 % SAVE DATA:
-save(fullfile(Parameters.pathData,['DigitSpan_',Parameters.subjectInfo.id,'.mat']),'Data'); % save subject data
+save(fullfile(Parameters.pathData,['DigitSpan_',Parameters.subjectInfo.id,'.mat']),'Data','Parameters'); % save subject data
 fprintf('Data saved successfully!\n')
 
 % FINISH PSYCHTOOLBOX
