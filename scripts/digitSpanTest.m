@@ -220,6 +220,9 @@ DrawFormattedText(Parameters.window, 'Start mit der Enter-Taste','center',Parame
 Screen('Flip',Parameters.window); % flip to the screen
 waitEnter(Parameters); % wait for enter keypress
 
+% GET START TIME:
+Parameters.tStart = tic; % get start time 
+
 %% INSTRUCTIONS FORWARD AND BACKWARD
 
 for cond = 1:Parameters.numCond
@@ -291,7 +294,8 @@ DrawFormattedText(Parameters.window,strjoin({'Jetzt beginnt das Hauptexperiment.
     'Sie bearbeiten zuerst die Aufgabenbedingung "Zahlenreihen vorwaerts".',...
     'Danach bearbeiten Sie die Aufgabenbedingung "Zahlenreihen ruckwaerts".',...
     'Bitte beachten Sie, dass die Zahlenreihen im Verlauf des Experiments laenger werden.',...
-    'Au?erdem erhalten Sie keine Rueckmeldung mehr, ob Ihre Antwort richtig oder falsch war.'}),'center','center',Parameters.colorBlack,Parameters.textWrap);
+    'Immer wenn Sie Ihre Eingabe mit Enter bestaetigen, geht es automatisch mit der naechsten Zahlenreihe weiter.',...
+    'Ausserdem erhalten Sie keine Rueckmeldung mehr, ob Ihre Antwort richtig oder falsch war.'}),'center','center',Parameters.colorBlack,Parameters.textWrap);
 DrawFormattedText(Parameters.window, 'Start mit der Enter-Taste','center',Parameters.screenSize(2)-Parameters.textSize,Parameters.colorBlack);
 Screen('Flip',Parameters.window); % flip to the screen
 waitEnter(Parameters); % wait for enter key press
@@ -317,9 +321,9 @@ for cond = 1:Parameters.numCond % loop through both conditions
         % SHOW LOUDSPEAKER
         [Parameters] = showLoudspeaker(Parameters);
         % READ DIGITS:
-        readDigits(Data.digits{trial},Parameters.digitInterval); % let readDigits read the digits
+        readDigits(Data.digits{Data.cond == cond & Data.trial == trial},Parameters.digitInterval); % let readDigits read the digits
         % GET PARTICIPANT ENTRY:
-        [response,acc] = getResponse(Parameters,Data.digits{trial},cond);
+        [response,acc] = getResponse(Parameters,Data.digits{Data.cond == cond & Data.trial == trial},cond);
         Data.response(Data.cond == cond & Data.trial == trial) = response; % save response
         Data.acc(Data.cond == cond & Data.trial == trial) = acc; % save accuracy score
         % DECIDE WHETHER TO STOP OR TO CONTINUE:
@@ -341,9 +345,10 @@ Screen('DrawingFinished', Parameters.window); % tell PTB that stimulus drawing f
 Screen('Flip',Parameters.window); % flip to the screen
 KbPressWait; % wait for button press to continue
 
-% SAVE DATA:
+% SAVE DATA AND SHOW SCORE:
 save(fullfile(Parameters.pathData,['DigitSpan_',Parameters.subjectInfo.id,'.mat']),'Data','Parameters'); % save subject data
 fprintf('Data saved successfully!\n')
+fprintf('Total score: %d\n',nansum(Data.acc));
 
 % FINISH PSYCHTOOLBOX
 ListenChar(0); % makes it so characters typed do show up in the command Parameters.window
@@ -351,6 +356,11 @@ ShowCursor(); % show the cursor
 Screen('CloseAll'); % close screen
 RestrictKeysForKbCheck; % reset the keyboard input checking for all keys
 Priority(0); % disable realtime mode
+
+% GET TOTAL TIME AND DISPLAY:
+Parameters.tEnd = toc(Parameters.tStart); % get stop time
+fprintf('Total duration: %d minutes and %f seconds\n',floor(Parameters.tEnd/60),rem(Parameters.tEnd,60));
+
 
 end
 
