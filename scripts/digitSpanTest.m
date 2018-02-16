@@ -7,14 +7,23 @@
 % This task only runs on Mac OSX, since it makes use of the MATLAB
 % system('say','') command, which is only supported by Mac OSX
 
-function [Parameters,Data] = digitSpanTest
+function digitSpanTest
 %%  SET ALL TASK INDEPENDENT PARAMETERS:
 
 % CLEAN UP:
 close all; clear variables; clc;
 
+% DEFINE THE BASELOCATION DEPENDING ON THE PLATFORM:
+if ismac
+    Parameters.baseLocation = '~'; % base location for Mac
+elseif ispc
+    f = msgbox('This is a Windows machine! The task only runs on Mac OSX!','Error','error');
+    uiwait(f);
+    return
+end
+
 % ASK WHETHER SYSTEM LANGUAGE HAS BEEN CHANGED TO GERMAN?
-choice = questdlg('Was the system language set to German?',...
+choice = questdlg('Is the system language set to German?',...
     'Warning!', ...
     'No','Yes','Yes');
 if strcmp(choice,'No')
@@ -25,20 +34,14 @@ end
 % IDENTIFY COMPUTER
 Parameters.computer = computer; % save information about computer
 Parameters.hostName = char(getHostName(java.net.InetAddress.getLocalHost));
-Parameters.osName = OSName; % save information about operating system
-Parameters.matlabVersion = ['R' version('-release')]; % save information about operating systemversion('-release')
-
-% DEFINE THE BASELOCATION DEPENDING ON THE PLATFORM:
-if ismac
-    Parameters.baseLocation = '~'; % base location for Mac
-elseif ispc
-    Parameters.baseLocation = '/'; % base location for Windows
-end
-
-% CHANGE FILE PATH IF YOU ARE RUNNING ON LAB MAC COMPUTER
+% CHANGE FILE PATH IF YOU ARE RUNNING ON LAB MAC COMPUTER AND ADD
+% PSYCHTOOLBOX TO THE MATLAB PATH:
 if strcmp(Parameters.hostName,'nrcd-osx-404169') % lab mac computer
     Parameters.baseLocation = fullfile('/Users','Shared'); % name of the scanner trigger box
+    addpath(genpath('/Users/Shared/Psychtoolbox')); % add PsychToolbox to Matlab search path
 end
+Parameters.osName = OSName; % save information about operating system
+Parameters.matlabVersion = ['R' version('-release')]; % save information about operating systemversion('-release')
 
 % SET ALL NECESSARY TASK PATHS AND GET SYSTEM INFORMATION
 Parameters.pathTask = fullfile(Parameters.baseLocation,'Seafile','digitSpanTest'); % path to the task folder
@@ -233,7 +236,8 @@ for cond = 1:Parameters.numCond
         DrawFormattedText(Parameters.window,'Instruktionen: Zahlenreihen vorwaerts','center',Parameters.textSize * 2,Parameters.colorBlack);
         DrawFormattedText(Parameters.window,strjoin({'Der Computer wird Ihnen einige Zahlen vorlesen.',...
             'Wenn er fertig ist, geben Sie bitte die Zahlen in die Tastatur ein.',...
-            'Nutzen Sie dafuer bitte ausschliesslich die Zahlenreihe auf der Tastatur und nicht den Zahlenblock.\n',...
+            'Nutzen Sie dafuer bitte ausschliesslich die Zahlenreihe (oben auf der Tastatur)',...
+            'und nicht den Zahlenblock (rechts auf der Tastatur).',...
             'Sie koennen Ihre Eingabe mithilfe der Loeschen-Taste korrigieren.',...
             'Bitte bestaetigen Sie Ihre Eingabe mit der Enter-Taste.',...
             'Druecken Sie bitte die Enter-Taste fuer ein Beispiel.'}),'center','center',Parameters.colorBlack,Parameters.textWrap);

@@ -1,6 +1,6 @@
 function [response,acc] = getResponse(Parameters,digitSequence,cond)
-%UNTITLED8 Summary of this function goes here
-%   Detailed explanation goes here
+
+% This function collects the participant's response.
 
 DrawFormattedText(Parameters.window,'Eingabe:','center',Parameters.centerY - Parameters.textSize,Parameters.colorBlack); % draw 'Eingabe:'
 useKbCheck = true;
