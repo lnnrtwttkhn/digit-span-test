@@ -36,8 +36,8 @@ Parameters.computer = computer; % save information about computer
 Parameters.hostName = char(getHostName(java.net.InetAddress.getLocalHost));
 % CHANGE FILE PATH IF YOU ARE RUNNING ON LAB MAC COMPUTER AND ADD
 % PSYCHTOOLBOX TO THE MATLAB PATH:
-if strcmp(Parameters.hostName,'nrcd-osx-404169') % lab mac computer
-    Parameters.baseLocation = fullfile('/Users','Shared'); % name of the scanner trigger box
+if strcmp(Parameters.hostName,'nrcd-osx-404169') || strcmp(Parameters.hostName,'NRCD-OSX-404170.local') % lab mac minis
+    Parameters.baseLocation = fullfile('/Users','Shared','NeuroCode_Lennart'); % name of the scanner trigger box
     addpath(genpath('/Users/Shared/Psychtoolbox')); % add PsychToolbox to Matlab search path
 end
 Parameters.osName = OSName; % save information about operating system
@@ -81,10 +81,12 @@ Parameters.keyList(Parameters.keyTargets) = 1; % set keys of interest to 1
 % GET THE DEVICE NUMBER:
 [Parameters.deviceKeyNames,Parameters.deviceNames] = GetKeyboardIndices; % get a list of all devices connected
 if ismac
-    if strcmp(Parameters.hostName,'lip-osx-003854')
-        Parameters.deviceString = 'Apple Internal Keyboard / Trackpad'; % name of the scanner trigger box
-    elseif strcmp(Parameters.hostName,'nrcd-osx-404169')
-        Parameters.deviceString = 'Magic Keyboard with Numeric Keypad'; % name of the scanner trigger box
+    if strcmp(Parameters.hostName,'lip-osx-003854') % lennarts mac book
+        Parameters.deviceString = 'Apple Internal Keyboard / Trackpad'; % name of the keyboard
+    elseif strcmp(Parameters.hostName,'nrcd-osx-404169') % lab mac mini 1
+        Parameters.deviceString = 'Magic Keyboard with Numeric Keypad'; % name of the keyboard
+    elseif strcmp(Parameters.hostName,'NRCD-OSX-404170.local') % lab mac mini 2
+        Parameters.deviceString = 'Apple Keyboard'; % name of the keyboard
     end
     Parameters.device = 0;
     for k = 1:length(Parameters.deviceNames) % for each possible device
