@@ -37,7 +37,9 @@ Parameters.hostName = char(getHostName(java.net.InetAddress.getLocalHost));
 
 % CHANGE FILE PATH IF YOU ARE RUNNING ON LAB MAC COMPUTER AND ADD
 % PSYCHTOOLBOX TO THE MATLAB PATH:
-if strcmp(Parameters.hostName,'nrcd-osx-404169') || strcmp(Parameters.hostName,'NRCD-OSX-404170.local') % lab mac minis
+if strcmp(Parameters.hostName,'nrcd-osx-404169') || ...
+        strcmp(Parameters.hostName,'NRCD-OSX-404170.local') || ...
+        strcmp(Parameters.hostName,'lip-osx-004170') % lab mac minis
     Parameters.baseLocation = fullfile('/Users','Shared','NeuroCode_Lennart'); % name of the scanner trigger box
     addpath(genpath('/Users/Shared/Psychtoolbox')); % add PsychToolbox to Matlab search path
 end
@@ -87,7 +89,9 @@ if ismac
         Parameters.deviceString = 'Apple Internal Keyboard / Trackpad'; % name of the keyboard
     elseif strcmp(Parameters.hostName,'nrcd-osx-404169') % lab mac mini 1
         Parameters.deviceString = 'Magic Keyboard with Numeric Keypad'; % name of the keyboard
-    elseif strcmp(Parameters.hostName,'NRCD-OSX-404170.local') % lab mac mini 2
+    elseif strcmp(Parameters.hostName,'NRCD-OSX-404170.local') % lab mac mini 2 (old host name)
+        Parameters.deviceString = 'Apple Keyboard'; % name of the keyboard
+    elseif strcmp(Parameters.hostName,'lip-osx-004170') % lab mac mini 2 (new host name)
         Parameters.deviceString = 'Apple Keyboard'; % name of the keyboard
     end
     Parameters.device = 0;
