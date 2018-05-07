@@ -34,12 +34,14 @@ end
 % IDENTIFY COMPUTER
 Parameters.computer = computer; % save information about computer
 Parameters.hostName = char(getHostName(java.net.InetAddress.getLocalHost));
+
 % CHANGE FILE PATH IF YOU ARE RUNNING ON LAB MAC COMPUTER AND ADD
 % PSYCHTOOLBOX TO THE MATLAB PATH:
 if strcmp(Parameters.hostName,'nrcd-osx-404169') || strcmp(Parameters.hostName,'NRCD-OSX-404170.local') % lab mac minis
     Parameters.baseLocation = fullfile('/Users','Shared','NeuroCode_Lennart'); % name of the scanner trigger box
     addpath(genpath('/Users/Shared/Psychtoolbox')); % add PsychToolbox to Matlab search path
 end
+
 Parameters.osName = OSName; % save information about operating system
 Parameters.matlabVersion = ['R' version('-release')]; % save information about operating systemversion('-release')
 
